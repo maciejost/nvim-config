@@ -2,7 +2,7 @@ return {
   "nvim-telescope/telescope.nvim",
   dependencies = {
     "nvim-lua/plenary.nvim",
-    "nvim-telescope/telescope-fzf-native.nvim",
+    { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
   },
   opts = function(_, opts)
     -- You can customize default Telescope behavior here
@@ -20,10 +20,5 @@ return {
 
     -- Optional: load fzf-native if installed
     pcall(telescope.load_extension, "fzf")
-
-    -- Override <space><space> to use current working directory
-    vim.keymap.set("n", "<space><space>", function()
-      require("telescope.builtin").find_files({ cwd = vim.fn.getcwd() })
-    end, { desc = "Find Files (cwd)" })
   end,
 }
