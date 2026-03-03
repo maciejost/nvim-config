@@ -11,8 +11,7 @@ return {
 
     harpoon:extend(require("harpoon.extensions").builtins.highlight_current_file())
 
-    -- Override LazyVim default <leader><leader> (find files) with Harpoon quick menu
-    vim.keymap.set("n", "<leader><leader>", function()
+    vim.keymap.set("n", "<C-e>", function()
       require("harpoon").ui:toggle_quick_menu(require("harpoon"):list())
     end, { desc = "Harpoon quick menu" })
 

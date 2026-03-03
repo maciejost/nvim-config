@@ -1,7 +1,8 @@
 return {
-  "rose-pine/neovim",
-  name = "rose-pine",
+  "projekt0n/github-nvim-theme",
+  priority = 1000,
   config = function()
-    vim.cmd("colorscheme rose-pine-moon")
+    require("github-theme").setup({})
+    vim.cmd("colorscheme github_dark_high_contrast")
   end,
 }
