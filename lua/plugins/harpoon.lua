@@ -1,7 +1,7 @@
 return {
   "ThePrimeagen/harpoon",
   branch = "harpoon2",
-  dependencies = { "nvim-lua/plenary.nvim",  },
+  dependencies = { "nvim-lua/plenary.nvim" },
   config = function()
     local harpoon = require("harpoon")
 
@@ -10,6 +10,9 @@ return {
     -- REQUIRED
 
     harpoon:extend(require("harpoon.extensions").builtins.highlight_current_file())
+
+    vim.keymap.set("n", "o", "o<Esc>")
+    vim.keymap.set("n", "<S-o>", "O<Esc>")
 
     vim.keymap.set("n", "<C-e>", function()
       require("harpoon").ui:toggle_quick_menu(require("harpoon"):list())
