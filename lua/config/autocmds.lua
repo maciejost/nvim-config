@@ -14,7 +14,7 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
--- Auto-reload buffers when files are changed externally (e.g. by Copilot CLI)
+-- Auto-reload buffers when files are changed externally (e.g. by Claude Code)
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
   group = vim.api.nvim_create_augroup("auto_reload", { clear = true }),
   callback = function()

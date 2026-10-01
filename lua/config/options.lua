@@ -4,5 +4,5 @@
 vim.g.lazyvim_eslint_auto_format = true
 vim.g.lazyvim_picker = "fzf"
 
--- Auto-reload files changed externally (e.g. by Copilot CLI)
+-- Auto-reload files changed externally (e.g. by Claude Code)
 vim.opt.autoread = true
