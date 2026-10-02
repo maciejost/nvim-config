@@ -95,6 +95,20 @@ local function keep_lock_from_looking_stale(path)
   file:close()
 end
 
+-- The lock file is written once, when the server starts, but Claude only reads
+-- it when it launches. A Neovim left running for days ends up advertising a
+-- lock that Claude has since pruned - it treats an old one as stale - and the
+-- pane then opens with nothing to connect to, which looks like "Claude ignores
+-- my selection". Rewriting it immediately before each launch keeps it present
+-- and current, whatever removed or aged out the previous one.
+local function refresh_lock()
+  local state = require("claudecode").state
+  if not state.port or not state.auth_token then
+    return
+  end
+  pcall(require("claudecode.lockfile").create, state.port, state.auth_token)
+end
+
 return {
   "coder/claudecode.nvim",
   init = function()
@@ -110,6 +124,9 @@ return {
     local port = free_port()
     opts.port_range = { min = port, max = port }
     opts.terminal_cmd = terminal_cmd
+    -- Jump to the Claude pane after <leader>as instead of only making it
+    -- visible, so the selection can be typed about straight away.
+    opts.focus_after_send = true
     return opts
   end,
   config = function(_, opts)
@@ -123,6 +140,26 @@ return {
         keep_lock_from_looking_stale(path)
       end
       return ok, path, auth_token
+    end
+
+    -- Every entry point that can spawn the Claude terminal, so the lock is
+    -- fresh no matter which keymap got us here.
+    local terminal = require("claudecode.terminal")
+    for _, name in ipairs({
+      "open",
+      "simple_toggle",
+      "focus_toggle",
+      "toggle",
+      "toggle_open_no_focus",
+      "ensure_visible",
+    }) do
+      local original = terminal[name]
+      if type(original) == "function" then
+        terminal[name] = function(...)
+          refresh_lock()
+          return original(...)
+        end
+      end
     end
 
     require("claudecode").setup(opts)
