@@ -109,6 +109,34 @@ local function refresh_lock()
   pcall(require("claudecode.lockfile").create, state.port, state.auth_token)
 end
 
+-- Snacks' own double-escape only leaves insert mode, which parks the cursor in
+-- the Claude pane in terminal-normal mode. Hand focus back to the window the
+-- pane was opened from, falling back to any ordinary file window so this still
+-- does something sensible when that window is gone.
+local function focus_editor_window()
+  local current = vim.api.nvim_get_current_win()
+
+  local function is_editor(win)
+    if win == current or not vim.api.nvim_win_is_valid(win) then
+      return false
+    end
+    return vim.bo[vim.api.nvim_win_get_buf(win)].buftype == ""
+  end
+
+  local previous = vim.fn.win_getid(vim.fn.winnr("#"))
+  if is_editor(previous) then
+    vim.api.nvim_set_current_win(previous)
+    return
+  end
+
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if is_editor(win) then
+      vim.api.nvim_set_current_win(win)
+      return
+    end
+  end
+end
+
 return {
   "coder/claudecode.nvim",
   init = function()
@@ -127,6 +155,30 @@ return {
     -- Jump to the Claude pane after <leader>as instead of only making it
     -- visible, so the selection can be typed about straight away.
     opts.focus_after_send = true
+    -- Merged over the snacks terminal defaults, so only the Claude pane gets
+    -- this and other terminals keep plain double-escape. A single <esc> is
+    -- still forwarded to Claude, which uses it to interrupt.
+    opts.snacks_win_opts = vim.tbl_deep_extend("force", opts.snacks_win_opts or {}, {
+      keys = {
+        term_normal = {
+          "<esc>",
+          function(self)
+            self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
+            if self.esc_timer:is_active() then
+              self.esc_timer:stop()
+              vim.cmd("stopinsert")
+              vim.schedule(focus_editor_window)
+            else
+              self.esc_timer:start(200, 0, function() end)
+              return "<esc>"
+            end
+          end,
+          mode = "t",
+          expr = true,
+          desc = "Double escape back to the editor",
+        },
+      },
+    })
     return opts
   end,
   config = function(_, opts)
