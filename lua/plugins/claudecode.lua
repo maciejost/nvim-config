@@ -158,24 +158,26 @@ return {
     -- Merged over the snacks terminal defaults, so only the Claude pane gets
     -- this and other terminals keep plain double-escape. A single <esc> is
     -- still forwarded to Claude, which uses it to interrupt.
-    opts.snacks_win_opts = vim.tbl_deep_extend("force", opts.snacks_win_opts or {}, {
-      keys = {
-        term_normal = {
-          "<esc>",
-          function(self)
-            self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
-            if self.esc_timer:is_active() then
-              self.esc_timer:stop()
-              vim.cmd("stopinsert")
-              vim.schedule(focus_editor_window)
-            else
-              self.esc_timer:start(200, 0, function() end)
-              return "<esc>"
-            end
-          end,
-          mode = "t",
-          expr = true,
-          desc = "Double escape back to the editor",
+    opts.terminal = vim.tbl_deep_extend("force", opts.terminal or {}, {
+      snacks_win_opts = {
+        keys = {
+          term_normal = {
+            "<esc>",
+            function(self)
+              self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
+              if self.esc_timer:is_active() then
+                self.esc_timer:stop()
+                vim.cmd("stopinsert")
+                vim.schedule(focus_editor_window)
+              else
+                self.esc_timer:start(200, 0, function() end)
+                return "<esc>"
+              end
+            end,
+            mode = "t",
+            expr = true,
+            desc = "Double escape back to the editor",
+          },
         },
       },
     })
